@@ -35,6 +35,57 @@ const interviewers = [
   },
 ];
 
+const interviews = [
+  {
+    date: "10/08/2022",
+    score: 75,
+    applicantId: 1,
+    interviewerId: 1,
+  },
+  {
+    date: "25/08/2022",
+    score: 85,
+    applicantId: 1,
+    interviewerId: 3,
+  },
+  {
+    date: "31/08/2022",
+    score: 68,
+    applicantId: 2,
+    interviewerId: 2,
+  },
+  {
+    date: "05/09/2022",
+    score: 88,
+    applicantId: 2,
+    interviewerId: 1,
+  },
+  {
+    date: "27/08/2022",
+    score: 73,
+    applicantId: 3,
+    interviewerId: 3,
+  },
+  {
+    date: "05/09/2022",
+    score: 91,
+    applicantId: 3,
+    interviewerId: 1,
+  },
+  {
+    date: "01/09/2022",
+    score: 94,
+    applicantId: 4,
+    interviewerId: 1,
+  },
+  {
+    date: "03/09/2022",
+    score: 78,
+    applicantId: 4,
+    interviewerId: 2,
+  },
+];
+
 const dropApplicantsTable = db.prepare(`
 DROP TABLE IF EXISTS applicants;
 `);
@@ -71,3 +122,25 @@ const createInterviewer = db.prepare(`
 INSERT INTO interviewers (name, email) VALUES (@name, @email)
 `);
 for (let interviewer of interviewers) createInterviewer.run(interviewer);
+
+const dropTableInterviews = db.prepare(`
+DROP TABLE IF EXISTS interviews;
+`);
+dropTableInterviews.run();
+
+const createInterviewsTable = db.prepare(`
+CREATE TABLE IF NOT EXISTS interviews (
+    id INTEGER,
+    date TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    applicantId INTEGER NOT NULL,
+    interviewerId  INTEGER NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (applicantId) REFERENCES applicants (id) ON DELETE CASCADE,
+    FOREIGN KEY (interviewerId) REFERENCES interviewers (id) ON DELETE CASCADE
+    )`);
+createInterviewsTable.run();
+const createInterview = db.prepare(`
+ INSERT INTO interviews (date, score, applicantId, interviewerId) VALUES (@date, @score, @applicantId, @interviewerId)
+ `);
+for (let interview of interviews) createInterview.run(interview);
