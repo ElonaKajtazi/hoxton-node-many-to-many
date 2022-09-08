@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const port = 5000;
+const port = 5000
 
 const db = Database("./db/data.db", { verbose: console.log });
 const getApplicants = db.prepare(`
@@ -57,7 +57,7 @@ app.get("/", (req, res) => {
   res.send(`<h1>Applicants/Interviews/Interviewers API</h1>
     <h2>Available resources:</h2>
     <ul>
-      <li><a href="/applicants">Applicants</a></li>
+      <li><a href="/applicants">Applicants</a></li> 
       <li><a href="/interviews">Interviews</a></li>
       <li><a href="/interviewers">Interviewers</a></li>
     </ul>`);
@@ -68,7 +68,7 @@ app.get("/applicants", (req, res) => {
 });
 app.get("/interviewers", (req, res) => {
   const interviewers = getInterviewers.all();
-  res.send(interviewers);
+  res.send(interviewers); 
 });
 app.get("/interviews", (req, res) => {
   const interviews = getInterviews.all();
@@ -121,6 +121,26 @@ app.post("/applicants", (req, res) => {
     res.status(400).send({ errors });
   }
 });
-app.listen(port, () => {
-  console.log(`App running: http://localhost:${port}`);
-});
+app.post("/interviewers", (req, res) => {
+    const errors: string[] = [];
+  
+    if (typeof req.body.name !== "string") {
+      errors.push("Name not provided or not a string");
+    }
+    if (typeof req.body.email !== "string") {
+      errors.push("Email not provided or not a string");
+    }
+  
+    if (errors.length === 0) {
+      const info = createInterviewer.run(req.body);
+      const interviewer = getInterviewerById.get({ id: info.lastInsertRowid });
+      res.send(interviewer);
+    } else {
+      res.status(400).send({ errors });
+    }
+    //elona
+  });
+
+  app.listen(port, () => {
+    console.log(`App running: http://localhost:${port}`);
+  });
