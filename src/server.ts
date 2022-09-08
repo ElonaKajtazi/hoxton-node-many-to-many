@@ -13,15 +13,27 @@ const db = Database("./db/data.db", { verbose: console.log });
 const getApplicantById = db.prepare(`
 SELECT * FROM applicants WHERE id = @id
 `);
-const getInterviewForApplicant = db.prepare(`
+const getInterviewsForApplicant = db.prepare(`
 SELECT * FROM  interviews WHERE applicantId = @applicantId
 `);
 
-const getInterviwerForApplicant = db.prepare(`
+const getInterviwersForApplicant = db.prepare(`
 SELECT interviewers.* FROM interviewers
 JOIN interviews ON interviewers.id = interviews.interviewerId
 WHERE interviews.applicantId = @applicantId;
 `);
+const getInterviewerById = db.prepare(`
+SELECT * FROM interviewers WHERE id = @id
+`);
+const getInterviewsForInterviewer = db.prepare(`
+SELECT * FROM  interviews WHERE interviewerId = @interviewerId;
+`);
+const getApplicantsForInterviewer = db.prepare(`
+SELECT applicants.* from applicants
+JOIN interviews ON applicants.id = interviews.applicantId
+WHERE interviews.interviewerId = @interviewerId
+`);
+
 // const createApplicant = db.prepare(`
 // INSERT INTO applicants (name, email) VALUES (@name, @email)
 // `);
@@ -35,10 +47,10 @@ WHERE interviews.applicantId = @applicantId;
 app.get("/applicants/:id", (req, res) => {
   const applicant = getApplicantById.get(req.params);
   if (applicant) {
-    applicant.interviews = getInterviewForApplicant.all({
+    applicant.interviews = getInterviewsForApplicant.all({
       applicantId: applicant.id,
     });
-    applicant.interviewers = getInterviwerForApplicant.all({
+    applicant.interviewers = getInterviwersForApplicant.all({
       applicantId: applicant.id,
     });
     res.send(applicant);
@@ -46,7 +58,20 @@ app.get("/applicants/:id", (req, res) => {
     res.status(404).send({ error: "Applicant not found" });
   }
 });
-
+app.get("/interviewers/:id", (req, res) => {
+  const interviewer = getInterviewerById.get(req.params);
+  if (interviewer) {
+    interviewer.interviews = getInterviewsForInterviewer.all({
+      interviewerId: interviewer.id,
+    });
+    interviewer.applicants = getApplicantsForInterviewer.all({
+      interviewerId: interviewer.id,
+    });
+    res.send(interviewer);
+  } else {
+    res.status(404).send({ error: "Interviewer not found" });
+  }
+});
 app.listen(port, () => {
   console.log(`App running: http://localhost:${port}`);
 });
