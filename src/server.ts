@@ -16,20 +16,29 @@ SELECT * FROM applicants WHERE id = @id
 const getInterviewForApplicant = db.prepare(`
 SELECT * FROM  interviews WHERE applicantId = @applicantId
 `);
-const createApplicant = db.prepare(`
-INSERT INTO applicants (name, email) VALUES (@name, @email)
+
+const getInterviwerForApplicant = db.prepare(`
+SELECT interviewers.* FROM interviewers
+JOIN interviews ON interviewers.id = interviews.interviewerId
+WHERE interviews.applicantId = @applicantId;
 `);
-const createInterviewer = db.prepare(`
-INSERT INTO interviewers (name, email) VALUES (@name, @email)
-`);
-const createInterview = db.prepare(`
- INSERT INTO interviews (date, score, applicantId, interviewerId) VALUES (@date, @score, @applicantId, @interviewerId)
- `);
+// const createApplicant = db.prepare(`
+// INSERT INTO applicants (name, email) VALUES (@name, @email)
+// `);
+// const createInterviewer = db.prepare(`
+// INSERT INTO interviewers (name, email) VALUES (@name, @email)
+// `);
+// const createInterview = db.prepare(`
+//  INSERT INTO interviews (date, score, applicantId, interviewerId) VALUES (@date, @score, @applicantId, @interviewerId)
+//  `);
 
 app.get("/applicants/:id", (req, res) => {
   const applicant = getApplicantById.get(req.params);
   if (applicant) {
     applicant.interviews = getInterviewForApplicant.all({
+      applicantId: applicant.id,
+    });
+    applicant.interviewers = getInterviwerForApplicant.all({
       applicantId: applicant.id,
     });
     res.send(applicant);
