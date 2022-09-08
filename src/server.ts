@@ -43,15 +43,16 @@ const getInterviews = db.prepare(`
 SELECT * FROM interviews
 `);
 
-// const createApplicant = db.prepare(`
-// INSERT INTO applicants (name, email) VALUES (@name, @email)
-// `);
-// const createInterviewer = db.prepare(`
-// INSERT INTO interviewers (name, email) VALUES (@name, @email)
-// `);
-// const createInterview = db.prepare(`
-//  INSERT INTO interviews (date, score, applicantId, interviewerId) VALUES (@date, @score, @applicantId, @interviewerId)
-//  `);
+const createApplicant = db.prepare(`
+INSERT INTO applicants (name, email) VALUES (@name, @email)
+`);
+const createInterviewer = db.prepare(`
+INSERT INTO interviewers (name, email) VALUES (@name, @email)
+`);
+const createInterview = db.prepare(`
+ INSERT INTO interviews (date, score, applicantId, interviewerId) VALUES (@date, @score, @applicantId, @interviewerId)
+ `);
+
 app.get("/", (req, res) => {
   res.send(`<h1>Applicants/Interviews/Interviewers API</h1>
     <h2>Available resources:</h2>
@@ -70,9 +71,9 @@ app.get("/interviewers", (req, res) => {
   res.send(interviewers);
 });
 app.get("/interviews", (req, res) => {
-    const interviews = getInterviews.all();
-    res.send(interviews);
-  });
+  const interviews = getInterviews.all();
+  res.send(interviews);
+});
 app.get("/applicants/:id", (req, res) => {
   const applicant = getApplicantById.get(req.params);
   if (applicant) {
@@ -99,6 +100,25 @@ app.get("/interviewers/:id", (req, res) => {
     res.send(interviewer);
   } else {
     res.status(404).send({ error: "Interviewer not found" });
+  }
+});
+
+app.post("/applicants", (req, res) => {
+  const errors: string[] = [];
+
+  if (typeof req.body.name !== "string") {
+    errors.push("Name not provided or not a string");
+  }
+  if (typeof req.body.email !== "string") {
+    errors.push("Email not provided or not a string");
+  }
+
+  if (errors.length === 0) {
+    const info = createApplicant.run(req.body);
+    const applicant = getApplicantById.get({ id: info.lastInsertRowid });
+    res.send(applicant);
+  } else {
+    res.status(400).send({ errors });
   }
 });
 app.listen(port, () => {
